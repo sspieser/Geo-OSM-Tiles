@@ -26,6 +26,8 @@ This module requires these other modules and libraries:
    Test::More
    File::Temp
    File::Find
+   LWP::UserAgent::Determined
+   Parallel::ForkManager
 
 Note that all but LWP and YAML are core modules in Perl 5.8 and later.
 In order to verify the signature of the distribution, you furthermore
