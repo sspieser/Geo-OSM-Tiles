@@ -175,14 +175,21 @@ sub downloadtiles
 	       scalar(@{$tiles->{$zoom}}), $zoom
 	    unless $opt{quiet};
 
-        my $pm = Parallel::ForkManager->new($max_procs);
+	my $pm;
+	undef $pm;
+	if ($max_procs > 1) {
+        	$pm = Parallel::ForkManager->new($max_procs);
+	}
 
 	for my $t (@{$tiles->{$zoom}}) {
-            $pm->start and next;
-
+	    if ($max_procs > 1) {
+            	$pm->start and next;
+	    }
             downloadtile($lwpua, @{$t->{xyz}}, $pm);
 	}
-        $pm->wait_all_children;
+	if ($max_procs > 1) {
+        	$pm->wait_all_children;
+	}
 
     }
 }
@@ -240,14 +247,16 @@ sub downloadtile
 
     mkpath(dirname($fname));
 
-    if (-s $fname && $opt{skip}) {
+    if (-s $fname && $opt{skip} && defined $pm) {
         $pm->finish;
     } else {
         my $res = $lwpua->get($url, ':content_file' => $fname);
         if (!$res->is_success) {
             printf "Error for %s [%d:%s]\n", $fname, $res->code, $res->message;
         }
-        $pm->finish;
+	if (defined $pm) {	
+        	$pm->finish;
+	}
     }
 }
 
